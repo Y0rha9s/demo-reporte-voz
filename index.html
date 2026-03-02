@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Demo Reporte de Voz</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f2f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 40px;
+      width: 620px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      font-size: 1.4rem;
+      color: #1a1a2e;
+      margin-bottom: 6px;
+    }
+
+    p.sub {
+      color: #888;
+      font-size: 0.9rem;
+      margin-bottom: 24px;
+    }
+
+    select {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 0.95rem;
+      color: #333;
+    }
+
+    .btn-grabar {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.05rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: #4f46e5;
+      color: white;
+    }
+
+    .btn-grabar.grabando {
+      background: #ef4444;
+    }
+
+    .btn-grabar:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    .onda {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      margin: 16px 0;
+      height: 32px;
+    }
+
+    .onda.activa {
+      display: flex;
+    }
+
+    .onda span {
+      width: 4px;
+      background: #ef4444;
+      border-radius: 4px;
+      animation: onda 0.8s ease-in-out infinite;
+    }
+
+    .onda span:nth-child(1) {
+      animation-delay: 0s;
+      height: 12px;
+    }
+
+    .onda span:nth-child(2) {
+      animation-delay: 0.1s;
+      height: 24px;
+    }
+
+    .onda span:nth-child(3) {
+      animation-delay: 0.2s;
+      height: 32px;
+    }
+
+    .onda span:nth-child(4) {
+      animation-delay: 0.1s;
+      height: 24px;
+    }
+
+    .onda span:nth-child(5) {
+      animation-delay: 0s;
+      height: 12px;
+    }
+
+    @keyframes onda {
+
+      0%,
+      100% {
+        transform: scaleY(1);
+      }
+
+      50% {
+        transform: scaleY(1.8);
+      }
+    }
+
+    .seccion {
+      margin-top: 24px;
+    }
+
+    .seccion label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      color: #333;
+      resize: vertical;
+      min-height: 90px;
+      line-height: 1.5;
+      background: #fafafa;
+    }
+
+    textarea.tecnico {
+      background: #f0f7ff;
+      border-color: #4f46e5;
+      color: #1a1a2e;
+    }
+
+    .estado {
+      margin-top: 14px;
+      font-size: 0.85rem;
+      color: #888;
+      text-align: center;
+      min-height: 20px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="card">
+    <h1>🎙️ Reporte por Voz</h1>
+    <p class="sub">Graba tu descripción y la IA la convierte en texto técnico</p>
+
+    <select id="fase">
+      <option value="pre-diagnóstico">Pre-Diagnóstico</option>
+      <option value="análisis">Análisis</option>
+      <option value="diagnóstico" selected>Diagnóstico</option>
+      <option value="resolución">Resolución</option>
+      <option value="cierre">Cierre</option>
+    </select>
+
+    <button class="btn-grabar" id="btnGrabar">🎙️ Iniciar Grabación</button>
+    <audio id="preview" controls style="width:100%; margin: 12px 0; display:none;"></audio>
+
+    <div class="onda" id="onda">
+      <span></span><span></span><span></span><span></span><span></span>
+    </div>
+
+    <div class="seccion">
+      <label>Texto Crudo (lo que dijiste)</label>
+      <textarea id="textoCrudo" placeholder="Aquí aparecerá la transcripción..." readonly></textarea>
+    </div>
+
+    <div class="seccion">
+      <label>Texto Técnico (reformulado por IA)</label>
+      <textarea class="tecnico" id="textoTecnico" placeholder="Aquí aparecerá el texto técnico estructurado..."
+        readonly></textarea>
+    </div>
+
+    <p class="estado" id="estado"></p>
+  </div>
+
+  <script>
+    let mediaRecorder = null;
+    let chunks = [];
+    let grabando = false;
+
+    const btn = document.getElementById("btnGrabar");
+    const onda = document.getElementById("onda");
+    const estado = document.getElementById("estado");
+    const textoCrudo = document.getElementById("textoCrudo");
+    const textoTecnico = document.getElementById("textoTecnico");
+    const fase = document.getElementById("fase");
+
+    btn.addEventListener("click", async () => {
+      if (!grabando) {
+        await iniciarGrabacion();
+      } else {
+        detenerGrabacion();
+      }
+    });
+
+    async function iniciarGrabacion() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        console.log("Dispositivo de audio:", stream.getAudioTracks()[0].label);
+
+        const opciones = { mimeType: "audio/webm;codecs=opus" };
+        mediaRecorder = new MediaRecorder(stream, opciones);
+        chunks = [];
+
+        mediaRecorder.ondataavailable = (e) => chunks.push(e.data);
+        mediaRecorder.onstop = async () => {
+          const blob = new Blob(chunks, { type: "audio/webm;codecs=opus" });
+
+          // AGREGAR ESTO — previsualizar audio
+          const preview = document.getElementById("preview");
+          preview.src = URL.createObjectURL(blob);
+          preview.style.display = "block";
+
+          await enviarAudio(blob);
+          stream.getTracks().forEach(t => t.stop());
+        };
+
+        mediaRecorder.start();
+        grabando = true;
+        btn.textContent = "⏹️ Detener Grabación";
+        btn.classList.add("grabando");
+        onda.classList.add("activa");
+        estado.textContent = "Grabando...";
+        textoCrudo.value = "";
+        textoTecnico.value = "";
+
+      } catch (err) {
+        estado.textContent = "❌ No se pudo acceder al micrófono.";
+      }
+    }
+
+    function detenerGrabacion() {
+      mediaRecorder.stop();
+      grabando = false;
+      btn.textContent = "⏳ Procesando...";
+      btn.disabled = true;
+      btn.classList.remove("grabando");
+      onda.classList.remove("activa");
+      estado.textContent = "Enviando audio a la IA...";
+    }
+
+    async function enviarAudio(blob) {
+      console.log("Tamaño del audio grabado:", blob.size, "bytes");
+      console.log("MimeType:", blob.type); // AGREGA ESTE LOG TAMBIÉN
+
+      const formData = new FormData();
+      formData.append("audio", blob, "audio.webm");
+      formData.append("fase", fase.value);
+      formData.append("mimeType", blob.type); // AGREGA ESTA LÍNEA
+
+      try {
+        const res = await fetch("/api/procesar-audio", {
+          method: "POST",
+          body: formData,
+        });
+        const data = await res.json();
+
+        if (data.error) {
+          estado.textContent = "❌ Error: " + data.error;
+        } else {
+          textoCrudo.value = data.textoCrudo;
+          textoTecnico.value = data.textoTecnico;
+          estado.textContent = "✅ Listo";
+        }
+      } catch (err) {
+        estado.textContent = "❌ Error al conectar con el servidor.";
+      } finally {
+        btn.textContent = "🎙️ Iniciar Grabación";
+        btn.disabled = false;
+      }
+    }
+  </script>
+</body>
+
+</html>
