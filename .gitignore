@@ -1,3 +1,9 @@
 echo ".env" > .gitignore
 echo "node_modules" >> .gitignore
 echo "uploads" >> .gitignore
+
+
+.env
+node_modules
+uploads
+backend/.env
