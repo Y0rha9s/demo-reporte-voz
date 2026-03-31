@@ -1,178 +1,248 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Demo Reporte de Voz</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Segoe UI', sans-serif;
       background: #f0f2f5;
       display: flex;
       justify-content: center;
-      align-items: center;
+      align-items: flex-start;
       min-height: 100vh;
+      padding: 24px 16px;
     }
-
     .card {
       background: white;
       border-radius: 16px;
-      padding: 40px;
-      width: 620px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      padding: 32px 28px;
+      width: 100%;
+      max-width: 620px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
     }
-
-    h1 {
-      font-size: 1.4rem;
-      color: #1a1a2e;
-      margin-bottom: 6px;
-    }
-
-    p.sub {
-      color: #888;
-      font-size: 0.9rem;
-      margin-bottom: 24px;
-    }
+    h1 { font-size: 1.3rem; color: #1a1a2e; margin-bottom: 4px; }
+    p.sub { color: #888; font-size: 0.88rem; margin-bottom: 24px; }
 
     select {
       width: 100%;
       padding: 10px 14px;
       border: 1px solid #ddd;
       border-radius: 8px;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
       font-size: 0.95rem;
       color: #333;
     }
 
     .btn-grabar {
       width: 100%;
-      padding: 16px;
+      padding: 14px;
       border: none;
       border-radius: 12px;
-      font-size: 1.05rem;
+      font-size: 1rem;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.2s;
       background: #4f46e5;
       color: white;
     }
-
-    .btn-grabar.grabando {
-      background: #ef4444;
-    }
-
-    .btn-grabar:disabled {
-      background: #ccc;
-      cursor: not-allowed;
-    }
+    .btn-grabar.grabando { background: #ef4444; }
+    .btn-grabar:disabled { background: #ccc; cursor: not-allowed; }
 
     .onda {
       display: none;
       align-items: center;
       justify-content: center;
       gap: 4px;
-      margin: 16px 0;
+      margin: 14px 0;
       height: 32px;
     }
-
-    .onda.activa {
-      display: flex;
-    }
-
+    .onda.activa { display: flex; }
     .onda span {
       width: 4px;
       background: #ef4444;
       border-radius: 4px;
       animation: onda 0.8s ease-in-out infinite;
     }
-
-    .onda span:nth-child(1) {
-      animation-delay: 0s;
-      height: 12px;
-    }
-
-    .onda span:nth-child(2) {
-      animation-delay: 0.1s;
-      height: 24px;
-    }
-
-    .onda span:nth-child(3) {
-      animation-delay: 0.2s;
-      height: 32px;
-    }
-
-    .onda span:nth-child(4) {
-      animation-delay: 0.1s;
-      height: 24px;
-    }
-
-    .onda span:nth-child(5) {
-      animation-delay: 0s;
-      height: 12px;
-    }
-
+    .onda span:nth-child(1) { animation-delay: 0s;   height: 12px; }
+    .onda span:nth-child(2) { animation-delay: 0.1s; height: 24px; }
+    .onda span:nth-child(3) { animation-delay: 0.2s; height: 32px; }
+    .onda span:nth-child(4) { animation-delay: 0.1s; height: 24px; }
+    .onda span:nth-child(5) { animation-delay: 0s;   height: 12px; }
     @keyframes onda {
-
-      0%,
-      100% {
-        transform: scaleY(1);
-      }
-
-      50% {
-        transform: scaleY(1.8);
-      }
+      0%, 100% { transform: scaleY(1); }
+      50%       { transform: scaleY(1.8); }
     }
 
-    .seccion {
-      margin-top: 24px;
-    }
+    audio { width: 100%; margin: 12px 0; display: none; }
 
+    .seccion { margin-top: 20px; }
     .seccion label {
       display: block;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       font-weight: 600;
       color: #888;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       margin-bottom: 8px;
     }
-
     textarea {
       width: 100%;
       padding: 12px;
       border: 1px solid #ddd;
       border-radius: 8px;
-      font-size: 0.95rem;
+      font-size: 0.93rem;
       color: #333;
       resize: vertical;
       min-height: 90px;
-      line-height: 1.5;
+      line-height: 1.6;
       background: #fafafa;
     }
-
     textarea.tecnico {
       background: #f0f7ff;
       border-color: #4f46e5;
       color: #1a1a2e;
     }
 
+    /* ── Imágenes ── */
+    .img-botones {
+      display: flex;
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .btn-img {
+      flex: 1;
+      padding: 11px;
+      border: 2px dashed #ddd;
+      border-radius: 10px;
+      background: #fafafa;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #555;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-img:hover { border-color: #4f46e5; color: #4f46e5; background: #f0f7ff; }
+
+    .previews {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .preview-item {
+      position: relative;
+      width: 90px;
+      height: 90px;
+    }
+    .preview-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+    }
+    .preview-item button {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: none;
+      background: #ef4444;
+      color: white;
+      font-size: 0.75rem;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    /* Cámara modal */
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      z-index: 100;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+    }
+    .modal.activo { display: flex; }
+    .modal video {
+      width: 100%;
+      max-width: 480px;
+      border-radius: 12px;
+    }
+    .modal-botones { display: flex; gap: 12px; }
+    .btn-capturar {
+      padding: 12px 28px;
+      border: none;
+      border-radius: 10px;
+      background: #4f46e5;
+      color: white;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-cancelar {
+      padding: 12px 28px;
+      border: none;
+      border-radius: 10px;
+      background: #555;
+      color: white;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    canvas { display: none; }
+
+    .btn-pdf {
+      display: none;
+      width: 100%;
+      margin-top: 16px;
+      padding: 13px;
+      border: none;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: #10b981;
+      color: white;
+      transition: background 0.2s;
+    }
+    .btn-pdf:hover { background: #059669; }
+
     .estado {
       margin-top: 14px;
-      font-size: 0.85rem;
+      font-size: 0.84rem;
       color: #888;
       text-align: center;
       min-height: 20px;
     }
+
+    @media (max-width: 480px) {
+      .card { padding: 24px 18px; }
+      h1 { font-size: 1.1rem; }
+      .preview-item { width: 75px; height: 75px; }
+    }
   </style>
 </head>
-
 <body>
+
+  <!-- Modal cámara -->
+  <div class="modal" id="modal">
+    <video id="camVideo" autoplay playsinline></video>
+    <div class="modal-botones">
+      <button class="btn-capturar" id="btnCapturar">📸 Capturar</button>
+      <button class="btn-cancelar" id="btnCancelar">Cancelar</button>
+    </div>
+    <canvas id="canvas"></canvas>
+  </div>
+
   <div class="card">
     <h1>🎙️ Reporte por Voz</h1>
     <p class="sub">Graba tu descripción y la IA la convierte en texto técnico</p>
@@ -186,11 +256,12 @@
     </select>
 
     <button class="btn-grabar" id="btnGrabar">🎙️ Iniciar Grabación</button>
-    <audio id="preview" controls style="width:100%; margin: 12px 0; display:none;"></audio>
 
     <div class="onda" id="onda">
       <span></span><span></span><span></span><span></span><span></span>
     </div>
+
+    <audio id="preview" controls></audio>
 
     <div class="seccion">
       <label>Texto Crudo (lo que dijiste)</label>
@@ -199,17 +270,32 @@
 
     <div class="seccion">
       <label>Texto Técnico (reformulado por IA)</label>
-      <textarea class="tecnico" id="textoTecnico" placeholder="Aquí aparecerá el texto técnico estructurado..."
-        readonly></textarea>
+      <textarea class="tecnico" id="textoTecnico" placeholder="Aquí aparecerá el texto técnico estructurado..." readonly></textarea>
     </div>
 
+    <!-- Sección imágenes -->
+    <div class="seccion">
+      <label>📷 Imágenes del reporte</label>
+      <div class="img-botones">
+        <button class="btn-img" id="btnCamara">📷 Tomar foto</button>
+        <button class="btn-img" id="btnSubir">🖼️ Subir imagen</button>
+      </div>
+      <input type="file" id="inputFile" accept="image/*" multiple style="display:none" />
+      <div class="previews" id="previews"></div>
+    </div>
+
+    <button class="btn-pdf" id="btnPdf">📄 Descargar PDF</button>
     <p class="estado" id="estado"></p>
   </div>
 
   <script>
+    const { jsPDF } = window.jspdf;
+
     let mediaRecorder = null;
     let chunks = [];
     let grabando = false;
+    let imagenes = []; // array de dataURLs
+    let streamCam = null;
 
     const btn = document.getElementById("btnGrabar");
     const onda = document.getElementById("onda");
@@ -217,20 +303,19 @@
     const textoCrudo = document.getElementById("textoCrudo");
     const textoTecnico = document.getElementById("textoTecnico");
     const fase = document.getElementById("fase");
+    const preview = document.getElementById("preview");
+    const btnPdf = document.getElementById("btnPdf");
+    const previews = document.getElementById("previews");
 
+    // ── Grabación de voz ─────────────────────────────────
     btn.addEventListener("click", async () => {
-      if (!grabando) {
-        await iniciarGrabacion();
-      } else {
-        detenerGrabacion();
-      }
+      if (!grabando) await iniciarGrabacion();
+      else detenerGrabacion();
     });
 
     async function iniciarGrabacion() {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        console.log("Dispositivo de audio:", stream.getAudioTracks()[0].label);
-
         const opciones = { mimeType: "audio/webm;codecs=opus" };
         mediaRecorder = new MediaRecorder(stream, opciones);
         chunks = [];
@@ -238,12 +323,8 @@
         mediaRecorder.ondataavailable = (e) => chunks.push(e.data);
         mediaRecorder.onstop = async () => {
           const blob = new Blob(chunks, { type: "audio/webm;codecs=opus" });
-
-          // AGREGAR ESTO — previsualizar audio
-          const preview = document.getElementById("preview");
           preview.src = URL.createObjectURL(blob);
           preview.style.display = "block";
-
           await enviarAudio(blob);
           stream.getTracks().forEach(t => t.stop());
         };
@@ -256,7 +337,7 @@
         estado.textContent = "Grabando...";
         textoCrudo.value = "";
         textoTecnico.value = "";
-
+        btnPdf.style.display = "none";
       } catch (err) {
         estado.textContent = "❌ No se pudo acceder al micrófono.";
       }
@@ -273,27 +354,21 @@
     }
 
     async function enviarAudio(blob) {
-      console.log("Tamaño del audio grabado:", blob.size, "bytes");
-      console.log("MimeType:", blob.type); // AGREGA ESTE LOG TAMBIÉN
-
       const formData = new FormData();
       formData.append("audio", blob, "audio.webm");
       formData.append("fase", fase.value);
-      formData.append("mimeType", blob.type); // AGREGA ESTA LÍNEA
+      formData.append("mimeType", blob.type);
 
       try {
-        const res = await fetch("/api/procesar-audio", {
-          method: "POST",
-          body: formData,
-        });
+        const res = await fetch("/api/procesar-audio", { method: "POST", body: formData });
         const data = await res.json();
-
         if (data.error) {
           estado.textContent = "❌ Error: " + data.error;
         } else {
           textoCrudo.value = data.textoCrudo;
           textoTecnico.value = data.textoTecnico;
           estado.textContent = "✅ Listo";
+          btnPdf.style.display = "block";
         }
       } catch (err) {
         estado.textContent = "❌ Error al conectar con el servidor.";
@@ -302,7 +377,136 @@
         btn.disabled = false;
       }
     }
+
+    // ── Cámara ───────────────────────────────────────────
+    const modal = document.getElementById("modal");
+    const camVideo = document.getElementById("camVideo");
+    const canvas = document.getElementById("canvas");
+    const btnCapturar = document.getElementById("btnCapturar");
+    const btnCancelar = document.getElementById("btnCancelar");
+
+    document.getElementById("btnCamara").addEventListener("click", async () => {
+      try {
+        streamCam = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+        camVideo.srcObject = streamCam;
+        modal.classList.add("activo");
+      } catch {
+        alert("No se pudo acceder a la cámara.");
+      }
+    });
+
+    btnCapturar.addEventListener("click", () => {
+      canvas.width = camVideo.videoWidth;
+      canvas.height = camVideo.videoHeight;
+      canvas.getContext("2d").drawImage(camVideo, 0, 0);
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+      agregarImagen(dataUrl);
+      cerrarCamara();
+    });
+
+    btnCancelar.addEventListener("click", cerrarCamara);
+
+    function cerrarCamara() {
+      if (streamCam) streamCam.getTracks().forEach(t => t.stop());
+      modal.classList.remove("activo");
+    }
+
+    // ── Subir imagen ─────────────────────────────────────
+    document.getElementById("btnSubir").addEventListener("click", () => {
+      document.getElementById("inputFile").click();
+    });
+
+    document.getElementById("inputFile").addEventListener("change", (e) => {
+      Array.from(e.target.files).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (ev) => agregarImagen(ev.target.result);
+        reader.readAsDataURL(file);
+      });
+      e.target.value = "";
+    });
+
+    function agregarImagen(dataUrl) {
+      const idx = imagenes.length;
+      imagenes.push(dataUrl);
+
+      const item = document.createElement("div");
+      item.className = "preview-item";
+      item.dataset.idx = idx;
+
+      const img = document.createElement("img");
+      img.src = dataUrl;
+
+      const del = document.createElement("button");
+      del.textContent = "✕";
+      del.addEventListener("click", () => {
+        imagenes.splice(idx, 1);
+        item.remove();
+      });
+
+      item.appendChild(img);
+      item.appendChild(del);
+      previews.appendChild(item);
+      btnPdf.style.display = "block";
+    }
+
+    // ── Generar PDF ──────────────────────────────────────
+    btnPdf.addEventListener("click", () => {
+      const doc = new jsPDF();
+      const faseActual = fase.value;
+      const fecha = new Date().toLocaleDateString("es-CL");
+      const texto = textoTecnico.value;
+
+      // Encabezado
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(16);
+      doc.text("Reporte Técnico", 20, 20);
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.setTextColor(120);
+      doc.text(`Fase: ${faseActual}`, 20, 30);
+      doc.text(`Fecha: ${fecha}`, 20, 36);
+
+      doc.setDrawColor(200);
+      doc.line(20, 40, 190, 40);
+
+      // Texto técnico
+      doc.setFontSize(11);
+      doc.setTextColor(30);
+      const lineas = doc.splitTextToSize(texto, 170);
+      doc.text(lineas, 20, 50);
+
+      // Imágenes
+      if (imagenes.length > 0) {
+        let y = 50 + lineas.length * 6 + 14;
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(11);
+        doc.setTextColor(80);
+        doc.text("Evidencia fotográfica", 20, y);
+        y += 8;
+
+        const imgW = 80;
+        const imgH = 60;
+        let x = 20;
+
+        imagenes.forEach((dataUrl, i) => {
+          if (y + imgH > 280) {
+            doc.addPage();
+            y = 20;
+            x = 20;
+          }
+          doc.addImage(dataUrl, "JPEG", x, y, imgW, imgH);
+          x += imgW + 10;
+          if (x + imgW > 190) {
+            x = 20;
+            y += imgH + 10;
+          }
+        });
+      }
+
+      doc.save(`reporte-${faseActual}-${fecha}.pdf`);
+    });
   </script>
 </body>
-
 </html>
