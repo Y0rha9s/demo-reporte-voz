@@ -15,7 +15,7 @@ import authRoutes from "./routes/auth.js";
 import reportesRoutes from "./routes/reportes.js";
 
 const app = express();
-app.use(cors({ origin: "http://localhost:5173" }));
+app.use(cors({ origin: ["http://localhost:5173", "https://demo-reporte-voz.vercel.app"] }));
 const upload = multer({ dest: "uploads/" });
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
