@@ -64,7 +64,7 @@ export default function GrabadorVoz({ fase, onTextoGenerado, onImagenes, datosGu
     formData.append("mimeType", blob.type);
 
     try {
-      const res = await axios.post("http://localhost:3000/api/procesar-audio", formData);
+      const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/procesar-audio`, formData)
       setTextoCrudo(res.data.textoCrudo);
       setTextoTecnico(res.data.textoTecnico);
       onTextoGenerado(res.data.textoTecnico);

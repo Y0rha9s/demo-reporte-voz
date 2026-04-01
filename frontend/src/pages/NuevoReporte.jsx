@@ -55,7 +55,7 @@ export default function NuevoReporte() {
   const handleFinalizar = async () => {
     setGuardando(true);
     try {
-      await axios.post("http://localhost:3000/api/reportes", {
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/reportes`, {
         usuario_id: usuario.id,
         sucursal_id: usuario.sucursal_id,
         fases: datosPorFase

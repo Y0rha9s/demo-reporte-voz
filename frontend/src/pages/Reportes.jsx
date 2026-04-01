@@ -8,14 +8,14 @@ export default function Reportes() {
   const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
-    axios.get("http://localhost:3000/api/reportes")
+    axios.get(`${import.meta.env.VITE_API_URL}/api/reportes`)
       .then(res => setReportes(res.data))
       .catch(err => console.error(err))
       .finally(() => setCargando(false));
   }, []);
 
   const descargarPDF = async (reporte) => {
-    const res = await axios.get(`http://localhost:3000/api/reportes/${reporte.id}`);
+    const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/reportes/${reporte.id}`)
     const datos = res.data;
 
     const doc = new jsPDF();
