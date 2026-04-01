@@ -1,20 +1,29 @@
+import dotenv from "dotenv";
+import { fileURLToPath } from "url";
+import path from "path";
+import cors from "cors";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: path.join(__dirname, '.env') });
+
 import express from "express";
 import multer from "multer";
 import Groq from "groq-sdk";
 import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
-import dotenv from "dotenv";
 import pool from "./db.js";
+import authRoutes from "./routes/auth.js";
+import reportesRoutes from "./routes/reportes.js";
 
-dotenv.config();
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
+app.use(cors({ origin: "http://localhost:5173" }));
 const upload = multer({ dest: "uploads/" });
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-app.use(express.static(__dirname));
+
+app.use(express.json({ limit: "100mb" }));
+app.use(express.urlencoded({ limit: "100mb", extended: true }));
+app.use("/api/auth", authRoutes);
+app.use("/api/reportes", reportesRoutes);
 
 app.post("/api/procesar-audio", upload.single("audio"), async (req, res) => {
     const fase = req.body.fase || "diagnóstico";
@@ -30,7 +39,6 @@ app.post("/api/procesar-audio", upload.single("audio"), async (req, res) => {
     try {
         fs.renameSync(audioPath, audioNuevo);
 
-        // ── IA 1: Whisper → texto crudo ──────────────────────
         const transcripcion = await groq.audio.transcriptions.create({
             file: fs.createReadStream(audioNuevo),
             model: "whisper-large-v3",
@@ -40,7 +48,6 @@ app.post("/api/procesar-audio", upload.single("audio"), async (req, res) => {
         });
         const textoCrudo = transcripcion.text ?? transcripcion;
 
-        // ── IA 2: LLM → texto técnico estructurado ───────────
         const prompt = `Eres un asistente técnico especializado en redacción de informes de fallas.
 Tu única tarea es tomar el siguiente texto hablado por un técnico y reescribirlo en lenguaje técnico formal y profesional.
 NO inventes información, NO agregues datos que no estén en el texto original.
@@ -66,6 +73,8 @@ Responde SOLO con el texto reformulado, sin explicaciones adicionales.`;
         res.status(500).json({ error: error.message });
     }
 });
+
+app.use(express.static(__dirname));
 
 pool.query("SELECT NOW()").then(res => {
     console.log("✅ BD conectada:", res.rows[0].now);
